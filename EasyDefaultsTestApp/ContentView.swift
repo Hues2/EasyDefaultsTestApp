@@ -11,7 +11,7 @@ struct ContentView: View {
     @State var counter = UserDefaults.standard.integer(forKey: "counter") + 1
     var body: some View {
         VStack {
-            Text("Use this app bundle ID in the Easy Defaults app: com.test.SaveToDefaultsApp\n\nAnd select the simulator that is running this test app.")
+            Text("Use this app bundle ID in the Easy Defaults app: com.test.EasyDefaultsTestApp\n\nAnd select the simulator that is running this test app.")
                 .font(.title2)
                 .fontWeight(.regular)
                 .padding(.vertical)
