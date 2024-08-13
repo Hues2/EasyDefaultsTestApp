@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State var counter = UserDefaults.standard.integer(forKey: "counter") + 1
+    
     var body: some View {
         VStack {
             Text("Use this app bundle ID in the Easy Defaults app: com.test.EasyDefaultsTestApp\n\nAnd select the simulator that is running this test app.")
@@ -20,9 +21,39 @@ struct ContentView: View {
                 UserDefaults.standard.setValue("Easy Defaults Test Value", forKey: "\(counter)")
                 counter += 1
             } label: {
-                Text("Save to User Defaults")
+                Text("Save String")
                     .foregroundStyle(.white)
-                    .font(.title)
+                    .font(.title2)
+                    .fontWeight(.black)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.green)
+                    .clipShape(.rect(cornerRadius: 12))
+            }
+            .buttonStyle(ScaleButtonStyle())
+            
+            Button {
+                UserDefaults.standard.setValue(Int.random(in: 0..<100), forKey: "\(counter)")
+                counter += 1
+            } label: {
+                Text("Save Int")
+                    .foregroundStyle(.white)
+                    .font(.title2)
+                    .fontWeight(.black)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.green)
+                    .clipShape(.rect(cornerRadius: 12))
+            }
+            .buttonStyle(ScaleButtonStyle())
+            
+            Button {
+                UserDefaults.standard.setValue(Bool.random(), forKey: "\(counter)")
+                counter += 1
+            } label: {
+                Text("Save Bool")
+                    .foregroundStyle(.white)
+                    .font(.title2)
                     .fontWeight(.black)
                     .padding()
                     .frame(maxWidth: .infinity)
@@ -36,7 +67,7 @@ struct ContentView: View {
             } label: {
                 Text("Clear User Defaults")
                     .foregroundStyle(.white)
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.black)
                     .padding()
                     .frame(maxWidth: .infinity)
