@@ -11,8 +11,10 @@ struct ContentView: View {
     @State var counter = UserDefaults.standard.integer(forKey: "counter") + 1
     private let myStringKey = "my_string"
     private let myBoolKey = "my_bool"
+    private let myDictKey = "my_dict"
     @State private var myString = UserDefaults.standard.string(forKey: "my_string") ?? ""
     @State private var myBool = UserDefaults.standard.bool(forKey: "my_bool").description
+    @State private var myDict : [String : Any]?
     
     var body: some View {
         ScrollView {
@@ -29,6 +31,8 @@ struct ContentView: View {
                     Text("myString: \(myString)")
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text("myBool: \(myBool)")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("myDict: \(myDict)")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .font(.title3)
@@ -74,6 +78,11 @@ struct ContentView: View {
                     reloadValues()
                 }
                 
+                button("Set myDict value") {
+                    saveDictionaryToUserDefaults(myDictKey)
+                    reloadValues()
+                }
+                
                 button("Reload") {
                     reloadValues()
                 }
@@ -83,6 +92,9 @@ struct ContentView: View {
                 }
             }
             .padding()
+        }
+        .onAppear {
+            self.myDict = retrieveDictionaryFromUserDefaults(myDictKey)
         }
     }
     
@@ -114,9 +126,11 @@ struct ContentView: View {
     func reloadValues() {
         let string = UserDefaults.standard.string(forKey: myStringKey)
         let bool = UserDefaults.standard.bool(forKey: myBoolKey).description
+        let dict = retrieveDictionaryFromUserDefaults(myDictKey)
         withAnimation {
             myString = string ?? ""
             myBool = bool
+            myDict = dict
         }
     }
 }
@@ -133,6 +147,45 @@ private extension ContentView {
         var objectString : String = "objectStringValue"
         var objectInt : Int = 10
         var objectBool : Bool = Bool.random()
+    }
+}
+
+// MARK: Save/Retrieve Dictionary
+private extension ContentView {
+    func saveDictionaryToUserDefaults(_ key: String) {
+        let sampleDictionary: [String: Any] = [
+            "username": "john_doe",
+            "age": 30,
+            "isLoggedIn": true,
+            "lastLoginDate": Date(),
+            "settings": ["volume": 80, "notificationsEnabled": true]
+        ]
+        
+        // Convert the dictionary to Data using PropertyListSerialization
+        if let data = try? PropertyListSerialization.data(fromPropertyList: sampleDictionary, format: .binary, options: 0) {
+            UserDefaults.standard.set(data, forKey: key)
+            print("Dictionary saved to UserDefaults")
+        } else {
+            print("Failed to serialize dictionary")
+        }
+    }
+
+    func retrieveDictionaryFromUserDefaults(_ key: String) -> [String: Any]? {
+        let userDefaults = UserDefaults.standard
+        
+        // Retrieve the Data from UserDefaults
+        if let data = userDefaults.data(forKey: key) {
+            // Convert the Data back to a dictionary using PropertyListSerialization
+            if let dictionary = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] {
+                return dictionary
+            } else {
+                print("Failed to deserialize dictionary")
+            }
+        } else {
+            print("No data found for key: \(key)")
+        }
+        
+        return nil
     }
 }
 
