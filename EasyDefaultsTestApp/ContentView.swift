@@ -8,13 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var counter = UserDefaults.standard.integer(forKey: "counter") + 1
-    private let myStringKey = "my_string"
     private let myBoolKey = "my_bool"
+    private let myIntKey = "my_int"
+    private let myStringKey = "my_string"
+    private let myDateKey = "my_date"
+    private let myDataKey = "my_data"
     private let myDictKey = "my_dict"
-    @State private var myString = UserDefaults.standard.string(forKey: "my_string") ?? ""
-    @State private var myBool = UserDefaults.standard.bool(forKey: "my_bool").description
+    @State private var myInt : Int?
+    @State private var myBool : Bool?
+    @State private var myString : String?
+    @State private var myDate : Date?
+    @State private var myData : [String : Any] = [:]
     @State private var myDict : [String : Any]?
+    private let numberOfTestStrings : Int = 100
     
     var body: some View {
         ScrollView {
@@ -27,64 +33,74 @@ struct ContentView: View {
                 
                 Divider()
                 
-                VStack {
-                    Text("myString: \(myString)")
+                VStack(spacing: 16) {
+                    if let myBool {
+                        Text("myBool: \(myBool.description)")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    if let myInt {
+                        Text("myInt: \(myInt)")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    if let myString {
+                        Text("myString: \(myString)")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    if let myDate {
+                        Text("myDate: \(myDate.description)")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    Text("myData: \(myData)")
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("myBool: \(myBool)")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("myDict: \(myDict)")
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if let myDict {
+                        Text("myDict: \(String(describing: myDict))")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
                 .font(.title3)
                 .padding(16)
                 
                 Divider()
+                    .padding(.vertical)
                 
-                button("Save String") {
-                    UserDefaults.standard.setValue("Easy Defaults Test Value", forKey: "\(counter)")
-                    counter += 1
-                }
-                
-                button("Save Int") {
-                    UserDefaults.standard.setValue(Int.random(in: 0..<100), forKey: "\(counter)")
-                    counter += 1
-                }
-                
-                button("Save Bool") {
-                    UserDefaults.standard.setValue(Bool.random(), forKey: "\(counter)")
-                    counter += 1
-                }
-                
-                button("Save Date") {
-                    UserDefaults.standard.setValue(Date(), forKey: "\(counter)")
-                    counter += 1
-                }
-                
-                button("Save Data") {
-                    let encoder = JSONEncoder()
-                    if let encoded = try? encoder.encode(CustomObject()) {
-                        UserDefaults.standard.setValue(encoded, forKey: "\(counter)")
-                        counter += 1
-                    }
-                }
-                
-                button("Set myString value") {
-                    UserDefaults.standard.setValue("My test string", forKey: myStringKey)
+                button("Reload") {
                     reloadValues()
                 }
                 
-                button("Set myBool value") {
+                button("Set myBool") {
                     UserDefaults.standard.setValue(true, forKey: myBoolKey)
                     reloadValues()
                 }
                 
-                button("Set myDict value") {
+                button("Save myInt") {
+                    UserDefaults.standard.setValue(Int.random(in: 0..<100), forKey: myIntKey)
+                }
+                
+                button("Set myString") {
+                    UserDefaults.standard.setValue("My test string", forKey: myStringKey)
+                    reloadValues()
+                }
+                
+                button("Save myDate") {
+                    UserDefaults.standard.setValue(Date(), forKey: myDateKey)
+                }
+                
+                button("Save myData") {
+                    let encoder = JSONEncoder()
+                    if let encoded = try? encoder.encode(CustomObject()) {
+                        UserDefaults.standard.setValue(encoded, forKey: myDataKey)
+                    }
+                }
+                
+                button("Set myDict") {
                     saveDictionaryToUserDefaults(myDictKey)
                     reloadValues()
                 }
                 
-                button("Reload") {
-                    reloadValues()
+                button("Save \(numberOfTestStrings) Strings") {
+                    for counter in 0..<numberOfTestStrings {
+                        UserDefaults.standard.setValue("Easy Defaults Test Value - \(counter)", forKey: "\(counter)")
+                    }
                 }
                 
                 button("Clear User Defaults", .pink) {
@@ -94,6 +110,13 @@ struct ContentView: View {
             .padding()
         }
         .onAppear {
+            self.myBool = UserDefaults.standard.bool(forKey: myBoolKey)
+            self.myInt = UserDefaults.standard.integer(forKey: myIntKey)
+            self.myString = UserDefaults.standard.string(forKey: myStringKey) ?? ""
+            self.myDate = UserDefaults.standard.value(forKey: myDateKey) as? Date
+            if let data = UserDefaults.standard.data(forKey: myDataKey) {
+                self.myData = Utils.decodeDataToDictionary(data)
+            }
             self.myDict = retrieveDictionaryFromUserDefaults(myDictKey)
         }
     }
@@ -124,13 +147,22 @@ struct ContentView: View {
     }
     
     func reloadValues() {
-        let string = UserDefaults.standard.string(forKey: myStringKey)
-        let bool = UserDefaults.standard.bool(forKey: myBoolKey).description
+        let userDefaults = UserDefaults.standard
+        let bool = userDefaults.bool(forKey: myBoolKey)
+        let int = userDefaults.integer(forKey: myIntKey)
+        let string = userDefaults.string(forKey: myStringKey)
+        let date = userDefaults.value(forKey: myDateKey) as? Date
+        let data = userDefaults.data(forKey: myDataKey)
         let dict = retrieveDictionaryFromUserDefaults(myDictKey)
         withAnimation {
-            myString = string ?? ""
             myBool = bool
+            myInt = int
+            myString = string ?? ""
             myDict = dict
+            myDate = date
+            if let data {
+                myData = Utils.decodeDataToDictionary(data)
+            }
         }
     }
 }
@@ -144,9 +176,9 @@ struct ScaleButtonStyle : ButtonStyle {
 
 private extension ContentView {
     struct CustomObject : Codable {
-        var objectString : String = "objectStringValue"
-        var objectInt : Int = 10
-        var objectBool : Bool = Bool.random()
+        var myString : String = "my test string value"
+        var myInt : Int = 10
+        var myBool : Bool = Bool.random()
     }
 }
 
