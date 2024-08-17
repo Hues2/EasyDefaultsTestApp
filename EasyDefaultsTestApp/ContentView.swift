@@ -14,6 +14,7 @@ struct ContentView: View {
     private let myDateKey = "my_date"
     private let myDataKey = "my_data"
     private let myDictKey = "my_dict"
+    private let myDictAsDataKey = "my_dict_as_data"
     @State private var myInt : Int?
     @State private var myBool : Bool?
     @State private var myString : String?
@@ -21,6 +22,14 @@ struct ContentView: View {
     @State private var myData : [String : Any] = [:]
     @State private var myDict : [String : Any]?
     private let numberOfTestStrings : Int = 100
+    
+    let sampleDictionary: [String: Any] = [
+        "username": "john_doe",
+        "age": 30,
+        "isLoggedIn": true,
+        "lastLoginDate": Date(),
+        "settings": ["volume": 80, "notificationsEnabled": true]
+    ]
     
     var body: some View {
         ScrollView {
@@ -93,7 +102,7 @@ struct ContentView: View {
                 }
                 
                 button("Set myDict") {
-                    saveDictionaryToUserDefaults(myDictKey)
+                    UserDefaults.standard.setValue(sampleDictionary, forKey: myDictKey)
                     reloadValues()
                 }
                 
@@ -103,6 +112,11 @@ struct ContentView: View {
                     }
                 }
                 
+                button("Set Dictionary as Data") {
+                    saveDictionaryToUserDefaults(myDictAsDataKey)
+                    reloadValues()
+                }
+                
                 button("Clear User Defaults", .pink) {
                     clearUserDefaults()
                 }
@@ -110,14 +124,7 @@ struct ContentView: View {
             .padding()
         }
         .onAppear {
-            self.myBool = UserDefaults.standard.bool(forKey: myBoolKey)
-            self.myInt = UserDefaults.standard.integer(forKey: myIntKey)
-            self.myString = UserDefaults.standard.string(forKey: myStringKey) ?? ""
-            self.myDate = UserDefaults.standard.value(forKey: myDateKey) as? Date
-            if let data = UserDefaults.standard.data(forKey: myDataKey) {
-                self.myData = Utils.decodeDataToDictionary(data)
-            }
-            self.myDict = retrieveDictionaryFromUserDefaults(myDictKey)
+            reloadValues()
         }
     }
     
@@ -153,7 +160,7 @@ struct ContentView: View {
         let string = userDefaults.string(forKey: myStringKey)
         let date = userDefaults.value(forKey: myDateKey) as? Date
         let data = userDefaults.data(forKey: myDataKey)
-        let dict = retrieveDictionaryFromUserDefaults(myDictKey)
+        let dict = userDefaults.dictionary(forKey: myDictKey)
         withAnimation {
             myBool = bool
             myInt = int
@@ -185,14 +192,6 @@ private extension ContentView {
 // MARK: Save/Retrieve Dictionary
 private extension ContentView {
     func saveDictionaryToUserDefaults(_ key: String) {
-        let sampleDictionary: [String: Any] = [
-            "username": "john_doe",
-            "age": 30,
-            "isLoggedIn": true,
-            "lastLoginDate": Date(),
-            "settings": ["volume": 80, "notificationsEnabled": true]
-        ]
-        
         // Convert the dictionary to Data using PropertyListSerialization
         if let data = try? PropertyListSerialization.data(fromPropertyList: sampleDictionary, format: .binary, options: 0) {
             UserDefaults.standard.set(data, forKey: key)
